@@ -1,0 +1,21 @@
+# Python-generated files
+__pycache__/
+*.py[oc]
+build/
+dist/
+wheels/
+*.egg-info
+
+# Virtual environments
+.venv
+
+# uploads files
+storage/
+
+.venv/
+.env
+__pycache__/
+*.pyc
+db_agent_metadata.db
+storage/
+.pytest_cache/
