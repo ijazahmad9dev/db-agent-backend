@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
 from db_agent.db.session import get_db
-from db_agent.db.models import Connection
+from db_agent.db.models import Connection, TableSelection
 from db_agent.api.routes.schema import _load_adapter
 from db_agent.semantic.models import SemanticLayer
 from db_agent.semantic.drafter import draft_table_semantic
@@ -15,9 +15,21 @@ router = APIRouter(prefix="/connections")
 @router.post("/{connection_id}/semantic/draft")
 def draft_semantic_layer(connection_id: str, tables: str | None = None, db: Session = Depends(get_db)):
     _, adapter = _load_adapter(connection_id, db)
-    table_names = tables.split(",") if tables else adapter.list_tables()
-    schema = adapter.get_schema(table_names)
 
+    if tables:
+        table_names = tables.split(",")  # explicit override — draft/re-draft specific tables
+    else:
+        selected = db.query(TableSelection).filter(
+            TableSelection.connection_id == connection_id, TableSelection.is_selected == True  # noqa: E712
+        ).all()
+        if not selected:
+            raise HTTPException(
+                status_code=400,
+                detail="No tables selected for this connection. Call POST /connections/{id}/tables/select first, or pass ?tables=... explicitly.",
+            )
+        table_names = [s.table_name for s in selected]
+
+    schema = adapter.get_schema(table_names)
     table_semantics = {t.name: draft_table_semantic(adapter, t) for t in schema}
     layer = SemanticLayer(connection_id=connection_id, tables=table_semantics)
 

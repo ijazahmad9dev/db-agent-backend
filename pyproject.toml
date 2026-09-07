@@ -9,6 +9,7 @@ authors = [
 requires-python = ">=3.11"
 dependencies = [
     "cryptography>=50.0.1",
+    "duckdb>=1.5.5",
     "fastapi>=0.141.1",
     "google-auth>=2.57.0",
     "gspread>=6.2.1",
@@ -25,7 +26,7 @@ dependencies = [
     "python-dotenv>=1.2.3",
     "python-multipart>=0.0.32",
     "pyyaml>=6.0.3",
-    "qdrant-client>=1.19.0",
+    "qdrant-client>=1.15,<2.0",
     "sqlalchemy>=2.0.52",
     "sqlparse>=0.6.0",
     "uvicorn[standard]>=0.52.4",

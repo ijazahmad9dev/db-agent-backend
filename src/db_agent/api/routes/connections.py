@@ -7,7 +7,7 @@ from sqlalchemy.orm import Session
 
 from db_agent.core.config import get_settings
 from db_agent.db.session import get_db
-from db_agent.db.models import Connection
+from db_agent.db.models import Connection, TableSelection
 from db_agent.security.credentials import encrypt_config, decrypt_config
 from db_agent.adapters.factory import get_adapter
 from db_agent.schemas.connection import (
@@ -15,7 +15,10 @@ from db_agent.schemas.connection import (
     ConnectionOut,
     ConnectionTestResult,
     TableListOut,
+    TableSelectionIn, 
+    TableSelectionOut,
 )
+from db_agent.introspection.ddl_vectorstore import index_ddl
 
 router = APIRouter(prefix="/connections")
 settings = get_settings()
@@ -135,3 +138,34 @@ def _get_connection_or_404(connection_id: str, db: Session) -> Connection:
     if connection is None:
         raise HTTPException(status_code=404, detail="Connection not found")
     return connection
+
+@router.post("/{connection_id}/tables/select", response_model=TableSelectionOut)
+def select_tables(connection_id: str, payload: TableSelectionIn, db: Session = Depends(get_db)):
+    connection = _get_connection_or_404(connection_id, db)
+    config = decrypt_config(connection.encrypted_config)
+    adapter = get_adapter(connection.source_type, config)
+
+    valid_tables = set(adapter.list_tables())
+    invalid = set(payload.table_names) - valid_tables
+    if invalid:
+        raise HTTPException(status_code=400, detail=f"Unknown tables: {sorted(invalid)}")
+
+    db.query(TableSelection).filter(TableSelection.connection_id == connection_id).delete()
+    for name in payload.table_names:
+        db.add(TableSelection(connection_id=connection_id, table_name=name, is_selected=True))
+    db.commit()
+
+    # DDL is deterministic (unlike semantic descriptions) — safe to index automatically on selection,
+    # no separate "draft" step needed like the semantic layer has.
+    schema = adapter.get_schema(payload.table_names)
+    index_ddl(connection_id, schema)
+
+    return TableSelectionOut(table_names=payload.table_names)
+
+
+@router.get("/{connection_id}/tables/selected", response_model=TableSelectionOut)
+def get_selected_tables(connection_id: str, db: Session = Depends(get_db)):
+    rows = db.query(TableSelection).filter(
+        TableSelection.connection_id == connection_id, TableSelection.is_selected == True  # noqa: E712
+    ).all()
+    return TableSelectionOut(table_names=[r.table_name for r in rows])
