@@ -24,3 +24,10 @@ class ConnectionTestResult(BaseModel):
 
 class TableListOut(BaseModel):
     tables: list[str]
+
+class TableSelectionIn(BaseModel):
+    table_names: list[str]
+
+
+class TableSelectionOut(BaseModel):
+    table_names: list[str]

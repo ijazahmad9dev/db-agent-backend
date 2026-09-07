@@ -19,8 +19,8 @@ class Settings(BaseSettings):
     cors_origins: list[str] = ["http://localhost:5173"]
 
     # LLM / Agent
-    ollama_base_url: str = "http://localhost:11434"
-    ollama_model: str = "llama3.1"
+    ollama_base_url: str = "https://subscriptions-persons-emission-thus.trycloudflare.com"
+    ollama_model: str = "gpt-oss:latest"
     agent_max_retries: int = 3
 
     # App's own metadata DB (stores connections, table selections — NOT user data)
@@ -38,7 +38,7 @@ class Settings(BaseSettings):
     upload_dir: str = "./storage/uploads"
 
     semantic_mappings_dir: str = "./storage/semantic"
-    qdrant_path: str = "http://localhost:6333"
+    qdrant_url: str = "http://localhost:6333"
     embedding_model: str = "qwen3-embedding:latest"
     semantic_top_k_default: int = 8
 

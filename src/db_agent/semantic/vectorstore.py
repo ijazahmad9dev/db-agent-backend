@@ -25,8 +25,7 @@ def get_client() -> QdrantClient:
     global _client
     if _client is None:
         _client = QdrantClient(url=settings.qdrant_url)
-        _ensure_collection(_client)
-    return _client
+    return _client 
 
 
 def _ensure_collection(client: QdrantClient) -> None:
@@ -52,6 +51,7 @@ def _table_to_text(table: TableSemantic) -> str:
 
 def index_semantic_layer(connection_id: str, layer: SemanticLayer) -> None:
     client = get_client()
+    _ensure_collection(client)  # moved here instead
     embeddings = get_embeddings()
 
     # clear any prior chunks for this connection before re-indexing (schema/semantic layer may have changed)
@@ -93,11 +93,12 @@ def search_relevant_tables(
         return []
 
     client = get_client()
+    _ensure_collection(client) 
     query_vector = get_embeddings().embed_query(question)
 
-    results = client.search(
+    response = client.query_points(
         collection_name=COLLECTION_NAME,
-        query_vector=query_vector,
+        query=query_vector,
         query_filter=qmodels.Filter(
             must=[
                 qmodels.FieldCondition(key="connection_id", match=qmodels.MatchValue(value=connection_id)),
@@ -106,4 +107,4 @@ def search_relevant_tables(
         ),
         limit=min(top_k, len(allowed_tables)),
     )
-    return [{"table_name": r.payload["table_name"], "text": r.payload["text"], "score": r.score} for r in results]
+    return [{"table_name": p.payload["table_name"], "text": p.payload["text"], "score": p.score} for p in response.points]
