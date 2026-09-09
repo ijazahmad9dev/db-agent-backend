@@ -3,7 +3,7 @@ from langgraph.graph import StateGraph, START, END
 from db_agent.agent.state import AgentState
 from db_agent.agent.nodes.question_analysis import question_analysis
 from db_agent.agent.nodes.schema_retrieval import schema_retrieval
-from db_agent.agent.nodes.semantic_layer import semantic_layer
+from db_agent.agent.nodes.relevance_check import relevance_check, route_after_relevance
 from db_agent.agent.nodes.query_generation import query_generation
 from db_agent.agent.nodes.query_validation import query_validation, route_after_validation
 from db_agent.agent.nodes.query_rewrite import query_rewrite
@@ -17,7 +17,7 @@ def build_graph():
 
     graph.add_node("question_analysis", question_analysis)
     graph.add_node("schema_retrieval", schema_retrieval)
-    graph.add_node("semantic_layer", semantic_layer)
+    graph.add_node("relevance_check", relevance_check)
     graph.add_node("query_generation", query_generation)
     graph.add_node("query_validation", query_validation)
     graph.add_node("query_rewrite", query_rewrite)
@@ -27,8 +27,13 @@ def build_graph():
 
     graph.add_edge(START, "question_analysis")
     graph.add_edge("question_analysis", "schema_retrieval")
-    graph.add_edge("schema_retrieval", "semantic_layer")
-    graph.add_edge("semantic_layer", "query_generation")
+    graph.add_edge("schema_retrieval", "relevance_check")  # semantic_layer node removed — schema_retrieval now does both
+
+    graph.add_conditional_edges(
+        "relevance_check",
+        route_after_relevance,
+        {"generate": "query_generation", "unanswerable": "response_builder"},
+    )
     graph.add_edge("query_generation", "query_validation")
 
     graph.add_conditional_edges(

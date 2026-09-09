@@ -19,10 +19,24 @@ from db_agent.schemas.connection import (
     TableSelectionOut,
 )
 from db_agent.introspection.ddl_vectorstore import index_ddl
+from charset_normalizer import from_path
 
 router = APIRouter(prefix="/connections")
 settings = get_settings()
 
+
+def _normalize_to_utf8(path: str) -> None:
+    """DuckDB's CSV reader expects UTF-8; many real-world CSVs (Excel exports, older
+    datasets) are actually Windows-1252/Latin-1. Detect and transcode so uploads
+    don't fail on the first non-ASCII byte."""
+    result = from_path(path).best()
+    if result is None or result.encoding is None:
+        return  # couldn't confidently detect — leave as-is; DuckDB will raise a clear error if it's actually invalid
+    if result.encoding.lower() in ("utf-8", "ascii"):
+        return
+    text = str(result)
+    with open(path, "w", encoding="utf-8") as f:
+        f.write(text)
 
 @router.post("", response_model=ConnectionOut)
 def create_connection(payload: ConnectionCreate, db: Session = Depends(get_db)):
@@ -68,6 +82,7 @@ def create_csv_connection(
         dest_path = os.path.join(upload_dir, upload.filename)
         with open(dest_path, "wb") as f:
             shutil.copyfileobj(upload.file, f)
+        _normalize_to_utf8(dest_path)  # new — fixes the exact failure you just hit
         file_entries.append({"table_name": table_name, "file_path": dest_path})
 
     config = {"files": file_entries}
