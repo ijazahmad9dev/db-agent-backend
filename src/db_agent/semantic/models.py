@@ -12,8 +12,8 @@ class RelationshipSemantic(BaseModel):
     from_column: str
     to_table: str
     to_column: str
+    cardinality: str = "many-to-one"  # "one-to-one" | "many-to-one" | "many-to-many"
     description: str = ""
-
 
 class TableSemantic(BaseModel):
     original_name: str

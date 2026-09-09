@@ -9,8 +9,9 @@ class ColumnInfo:
     data_type: str
     is_primary_key: bool = False
     is_foreign_key: bool = False
-    references: str | None = None  # "other_table.column" if FK
+    references: str | None = None
     nullable: bool = True
+    is_unique: bool = False   # new — determines FK cardinality (1:1 vs many-to-one)
 
 
 @dataclass

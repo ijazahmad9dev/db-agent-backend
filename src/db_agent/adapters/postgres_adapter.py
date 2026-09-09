@@ -38,6 +38,11 @@ class PostgresAdapter(DataSourceAdapter):
         tables = []
         for name in table_names:
             pk_cols = set(inspector.get_pk_constraint(name).get("constrained_columns", []))
+            unique_cols = set()
+            for uc in inspector.get_unique_constraints(name):
+                if len(uc["column_names"]) == 1:
+                    unique_cols.add(uc["column_names"][0])
+
             fk_map = {}
             for fk in inspector.get_foreign_keys(name):
                 for local_col, remote_col in zip(fk["constrained_columns"], fk["referred_columns"]):
@@ -51,6 +56,7 @@ class PostgresAdapter(DataSourceAdapter):
                     is_foreign_key=col["name"] in fk_map,
                     references=fk_map.get(col["name"]),
                     nullable=col.get("nullable", True),
+                    is_unique=col["name"] in unique_cols or col["name"] in pk_cols,
                 )
                 for col in inspector.get_columns(name)
             ]
@@ -59,8 +65,8 @@ class PostgresAdapter(DataSourceAdapter):
 
     def execute_query(self, query: str, row_limit: int, timeout_seconds: int) -> QueryResult:
         with self.engine.connect() as conn:
-            conn = conn.execution_options(stream_results=True)
-            result = conn.execute(text(f"SET statement_timeout = {timeout_seconds * 1000}"))
+            conn.execute(text(f"SET statement_timeout = {timeout_seconds * 1000}"))  # plain connection, no cursor
+            conn = conn.execution_options(stream_results=True)  # now apply streaming, only for the SELECT below
             result = conn.execute(text(query))
             columns = list(result.keys())
             rows = []

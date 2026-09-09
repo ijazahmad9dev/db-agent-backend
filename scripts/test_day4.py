@@ -127,19 +127,19 @@ def test_unselected_table_question(client: httpx.Client, connection_id: str):
     print("\n=== 5. A question that needs data OUTSIDE the selection (employees table not selected) ===")
     data = ask(client, connection_id, "Which employees work in the support department?")
 
-    # The agent must NOT silently succeed by reaching into 'employees' — it should either
-    # error out cleanly, or its query/answer must not reference the unselected table at all.
     if data["query"]:
         assert "employees" not in data["query"].lower(), (
             f"SECURITY FAIL — generated query referenced the unselected 'employees' table: {data['query']}"
         )
-    print("OK — agent did not reach into the unselected 'employees' table")
 
-    if data["error"]:
-        print(f"OK — agent correctly returned an explicit explanation instead of a fabricated answer: {data['error']}")
-    else:
-        print("NOTE — agent returned an answer without error; verify manually it isn't fabricated/hallucinated "
-              "data about employees, since that table was never in its context.")
+    # After the relevance-check fix, this must be an explicit error, not a fabricated empty-result answer.
+    assert data["error"] is not None, (
+        f"EXPECTED an explicit 'can't answer' error, but got a fabricated answer instead: {data['answer']!r}"
+    )
+    assert data["query"] is None or "where false" not in data["query"].lower(), (
+        "Agent appears to have dodged the question with an always-false query instead of admitting it can't answer."
+    )
+    print(f"OK — agent correctly refused with an explicit explanation: {data['error']}")
 
 
 def test_response_contract(data: dict):

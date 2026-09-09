@@ -2,7 +2,9 @@ import duckdb
 
 from db_agent.adapters.base import DataSourceAdapter, TableInfo, ColumnInfo, QueryResult
 from db_agent.adapters.duckdb_utils import run_with_timeout
+import logging
 
+logger = logging.getLogger(__name__)
 
 class CSVAdapter(DataSourceAdapter):
     source_type = "csv"
@@ -29,6 +31,7 @@ class CSVAdapter(DataSourceAdapter):
                 self.con.execute(f'SELECT * FROM "{name}" LIMIT 1')
             return True
         except Exception:
+            logger.exception("CSV connection test failed")  # now prints the real traceback to the backend terminal
             return False
 
     def list_tables(self) -> list[str]:

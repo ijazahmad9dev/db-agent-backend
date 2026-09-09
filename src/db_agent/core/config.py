@@ -16,7 +16,7 @@ class Settings(BaseSettings):
 
     # API
     api_prefix: str = "/api/v1"
-    cors_origins: list[str] = ["http://localhost:5173"]
+    cors_origins: list[str] = ["http://localhost:3000"]
 
     # LLM / Agent
     ollama_base_url: str = "https://subscriptions-persons-emission-thus.trycloudflare.com"
