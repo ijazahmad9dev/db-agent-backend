@@ -64,8 +64,10 @@ class MySQLAdapter(DataSourceAdapter):
 
     def execute_query(self, query: str, row_limit: int, timeout_seconds: int) -> QueryResult:
         with self.engine.connect() as conn:
-            conn.execute(text(f"SET statement_timeout = {timeout_seconds * 1000}"))  # plain connection, no cursor
-            conn = conn.execution_options(stream_results=True)  # now apply streaming, only for the SELECT below
+            # MySQL syntax — NOT Postgres's "SET statement_timeout". MAX_EXECUTION_TIME
+            # is milliseconds and, per MySQL docs, only enforced on SELECT statements —
+            # acceptable here since sql_guard already restricts generated queries to SELECT.
+            conn.execute(text(f"SET SESSION MAX_EXECUTION_TIME={timeout_seconds * 1000}"))
             result = conn.execute(text(query))
             columns = list(result.keys())
             rows = []
