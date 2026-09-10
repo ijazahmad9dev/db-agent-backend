@@ -45,7 +45,7 @@ def generate_query(
     if previous_error:
         prompt += f"\n\nYour previous attempt failed validation with this error — fix it:\n{previous_error}"
 
-    raw = llm.invoke(prompt).content
+    raw = llm.invoke(prompt, config={"run_name": "query_generation", "tags": ["query-pipeline"]}).content
     return _strip_fence(raw).strip().rstrip(";")
 
 

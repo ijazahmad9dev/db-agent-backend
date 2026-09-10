@@ -2,7 +2,7 @@ from langchain_ollama import ChatOllama
 
 from db_agent.core.config import get_settings
 from db_agent.agent.state import AgentState
-from db_agent.results.visualization import infer_visualization
+from db_agent.results.visualization import suggest_visualizations
 
 settings = get_settings()
 
@@ -24,7 +24,7 @@ def result_analysis(state: AgentState) -> dict:
     prompt = _ANALYSIS_PROMPT.format(
         question=state["question"], columns=result["columns"], rows=result["rows"][:20]
     )
-    answer = llm.invoke(prompt).content.strip()
+    answer = llm.invoke(prompt, config={"run_name": "result_analysis", "tags": ["agent-node"]}).content.strip()
 
-    visualization = infer_visualization(result["columns"], result["rows"])
-    return {"answer": answer, "visualization": visualization}
+    visualizations = suggest_visualizations(result["columns"], result["rows"], state["question"])
+    return {"answer": answer, "visualizations": visualizations}

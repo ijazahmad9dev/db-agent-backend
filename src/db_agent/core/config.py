@@ -113,6 +113,11 @@ class Settings(BaseSettings):
     google_sheets_scope: str = "https://www.googleapis.com/auth/spreadsheets.readonly"
     google_sheets_redirect_uri: str = "http://localhost:8000/api/v1/auth/google/sheets/callback"
 
+    langsmith_tracing: bool = False
+    langsmith_api_key: str = ""
+    langsmith_project: str = "db-agent"
+    langsmith_endpoint: str = "https://api.smith.langchain.com"
+
 @lru_cache
 def get_settings() -> Settings:
     return Settings()

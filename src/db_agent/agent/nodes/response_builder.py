@@ -5,7 +5,7 @@ def response_builder(state: AgentState) -> dict:
     if state.get("error"):
         return {
             "answer": None, "generated_query": None, "result": None,
-            "visualization": None, "error": state["error"],
+            "visualizations": [], "error": state["error"],
         }
 
     if state.get("validation_error") or state.get("execution_error"):
@@ -17,7 +17,7 @@ def response_builder(state: AgentState) -> dict:
             ),
             "generated_query": state.get("generated_query"),
             "result": None,
-            "visualization": None,
+            "visualizations": [],
             "error": final_error,
         }
 
@@ -25,6 +25,6 @@ def response_builder(state: AgentState) -> dict:
         "answer": state.get("answer"),
         "generated_query": state.get("generated_query"),
         "result": state.get("result"),
-        "visualization": state.get("visualization"),
+        "visualizations": state.get("visualizations", []),
         "error": None,
     }

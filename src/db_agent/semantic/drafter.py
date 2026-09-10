@@ -37,7 +37,7 @@ def _llm_draft(adapter: DataSourceAdapter, table: TableInfo) -> TableSemantic:
         columns=", ".join(f"{c.name}: {c.data_type}" for c in table.columns),
         samples=sample.rows,
     )
-    raw = llm.invoke(prompt).content
+    raw = llm.invoke(prompt, config={"run_name": "semantic_draft", "tags": ["semantic-layer"]}).content
     parsed = yaml.safe_load(_strip_fence(raw)) or {}
 
     col_meta = parsed.get("columns") or {}

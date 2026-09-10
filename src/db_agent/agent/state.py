@@ -18,5 +18,5 @@ class AgentState(TypedDict, total=False):
     retry_count: int
     max_retries: int
     answer: str | None
-    visualization: dict | None
+    visualizations: list[dict]  # was: visualization: dict | None
     error: str | None
