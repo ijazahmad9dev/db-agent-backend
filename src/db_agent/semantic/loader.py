@@ -24,3 +24,8 @@ def load_semantic_layer(connection_id: str) -> SemanticLayer | None:
     with open(path) as f:
         data = yaml.safe_load(f)
     return SemanticLayer.model_validate(data)
+
+def delete_semantic_layer(connection_id: str) -> None:
+    path = _path_for(connection_id)
+    if os.path.exists(path):
+        os.remove(path)

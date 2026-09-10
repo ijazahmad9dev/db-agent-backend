@@ -31,3 +31,7 @@ class TableSelectionIn(BaseModel):
 
 class TableSelectionOut(BaseModel):
     table_names: list[str]
+
+class GSheetsConnectionCreate(BaseModel):
+    name: str
+    sheet_url: str

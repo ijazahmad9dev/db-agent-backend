@@ -133,3 +133,13 @@ def search_relevant_schema(
                 }
 
     return list(results.values())
+
+def delete_connection_ddl(connection_id: str) -> None:
+    client = get_client()
+    _ensure_collection(client)
+    client.delete(
+        collection_name=COLLECTION_NAME,
+        points_selector=qmodels.FilterSelector(
+            filter=qmodels.Filter(must=[qmodels.FieldCondition(key="connection_id", match=qmodels.MatchValue(value=connection_id))])
+        ),
+    )

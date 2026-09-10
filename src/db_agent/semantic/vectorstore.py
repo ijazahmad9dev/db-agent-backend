@@ -108,3 +108,13 @@ def search_relevant_tables(
         limit=min(top_k, len(allowed_tables)),
     )
     return [{"table_name": p.payload["table_name"], "text": p.payload["text"], "score": p.score} for p in response.points]
+
+def delete_connection_vectors(connection_id: str) -> None:
+    client = get_client()
+    _ensure_collection(client)
+    client.delete(
+        collection_name=COLLECTION_NAME,
+        points_selector=qmodels.FilterSelector(
+            filter=qmodels.Filter(must=[qmodels.FieldCondition(key="connection_id", match=qmodels.MatchValue(value=connection_id))])
+        ),
+    )
