@@ -35,7 +35,7 @@ def relevance_check(state: AgentState) -> dict:
     prompt = _RELEVANCE_PROMPT.format(
         semantic_context=semantic_context, schema_context=schema_context, question=state["question"]
     )
-    raw = llm.invoke(prompt).content.strip()
+    raw = llm.invoke(prompt, config={"run_name": "relevance_check", "tags": ["agent-node"]}).content.strip()
 
     if raw.lower().startswith("answerable: no"):
         reason = raw.split("|", 1)[1].strip() if "|" in raw else "the selected tables don't contain relevant data."

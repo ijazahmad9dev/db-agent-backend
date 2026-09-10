@@ -7,6 +7,9 @@ from db_agent.core.logging import configure_logging
 from db_agent.db.session import init_db
 from db_agent.api.routes import connections, schema, erd, chat, health, semantic, auth
 
+from db_agent.core.observability import configure_langsmith
+configure_langsmith()
+
 settings = get_settings()
 configure_logging()
 
