@@ -9,10 +9,16 @@ class ChatRequest(BaseModel):
 
 
 class Visualization(BaseModel):
-    type: str
-    x: str
-    y: str
+    type: str  # "bar" | "line" | "pie" | "scatter" | "area" | "kpi"
     title: str
+    # Chart types (bar/line/pie/scatter/area): x/y are column names to plot.
+    x: str | None = None
+    y: str | None = None
+    # "kpi" type: a single-value dashboard tile. "value" is the column name holding
+    # the number (look it up in the result's first row) and "label" is the short
+    # human-readable name for the metric (e.g. "Average Order Value").
+    value: str | None = None
+    label: str | None = None
 
 
 class ChatResponse(BaseModel):
