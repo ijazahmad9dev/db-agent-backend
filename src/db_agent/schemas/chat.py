@@ -1,3 +1,5 @@
+from datetime import datetime
+
 from pydantic import BaseModel
 
 
@@ -21,3 +23,13 @@ class ChatResponse(BaseModel):
     metadata: dict | None = None
     visualizations: list[Visualization] | None = None
     error: str | None = None
+
+
+class ChatHistoryMessage(BaseModel):
+    role: str
+    question: str | None = None
+    response: ChatResponse | None = None
+    created_at: datetime
+
+    class Config:
+        from_attributes = True

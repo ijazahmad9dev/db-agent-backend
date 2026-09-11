@@ -15,14 +15,12 @@ class User(Base):
     __tablename__ = "users"
 
     id = Column(String, primary_key=True, default=_uuid)
-    google_sub = Column(String, unique=True, nullable=False, index=True)  # Google's stable user identifier
+    google_sub = Column(String, unique=True, nullable=False, index=True)
     email = Column(String, unique=True, nullable=False)
     name = Column(String, nullable=True)
     picture_url = Column(String, nullable=True)
     created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
 
-    # Populated later, in the Sheets-OAuth step — kept here now so this migration
-    # doesn't need to be touched again for that.
     google_refresh_token_encrypted = Column(String, nullable=True)
     google_sheets_scope_granted = Column(Boolean, default=False)
 
@@ -35,7 +33,7 @@ class Connection(Base):
     id = Column(String, primary_key=True, default=_uuid)
     user_id = Column(String, ForeignKey("users.id"), nullable=False, index=True)
     name = Column(String, nullable=False)
-    source_type = Column(String, nullable=False)  # "postgres" | "mysql" | "csv" | "gsheets"
+    source_type = Column(String, nullable=False)
     encrypted_config = Column(String, nullable=False)
     created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
     is_active = Column(Boolean, default=True)
@@ -43,6 +41,7 @@ class Connection(Base):
 
     owner = relationship("User", back_populates="connections")
     table_selections = relationship("TableSelection", back_populates="connection", cascade="all, delete-orphan")
+    chat_messages = relationship("ChatMessage", back_populates="connection", cascade="all, delete-orphan")
 
 
 class TableSelection(Base):
@@ -56,3 +55,16 @@ class TableSelection(Base):
     created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
 
     connection = relationship("Connection", back_populates="table_selections")
+
+
+class ChatMessage(Base):
+    __tablename__ = "chat_messages"
+
+    id = Column(String, primary_key=True, default=_uuid)
+    connection_id = Column(String, ForeignKey("connections.id"), nullable=False, index=True)
+    role = Column(String, nullable=False)  # "user" | "assistant"
+    question = Column(String, nullable=True)  # set on role="user" only
+    response_json = Column(JSON, nullable=True)  # set on role="assistant" only — mirrors ChatResponse shape
+    created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc), index=True)
+
+    connection = relationship("Connection", back_populates="chat_messages")

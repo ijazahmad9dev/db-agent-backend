@@ -1,6 +1,7 @@
 from langgraph.graph import StateGraph, START, END
 
 from db_agent.agent.state import AgentState
+from db_agent.agent.checkpointer import get_checkpointer
 from db_agent.agent.nodes.question_analysis import question_analysis
 from db_agent.agent.nodes.schema_retrieval import schema_retrieval
 from db_agent.agent.nodes.relevance_check import relevance_check, route_after_relevance
@@ -27,31 +28,25 @@ def build_graph():
 
     graph.add_edge(START, "question_analysis")
     graph.add_edge("question_analysis", "schema_retrieval")
-    graph.add_edge("schema_retrieval", "relevance_check")  # semantic_layer node removed — schema_retrieval now does both
-
+    graph.add_edge("schema_retrieval", "relevance_check")
     graph.add_conditional_edges(
-        "relevance_check",
-        route_after_relevance,
+        "relevance_check", route_after_relevance,
         {"generate": "query_generation", "unanswerable": "response_builder"},
     )
     graph.add_edge("query_generation", "query_validation")
-
     graph.add_conditional_edges(
-        "query_validation",
-        route_after_validation,
+        "query_validation", route_after_validation,
         {"execute": "query_execution", "retry": "query_rewrite", "give_up": "response_builder", "end": "response_builder"},
     )
     graph.add_edge("query_rewrite", "query_generation")
-
     graph.add_conditional_edges(
-        "query_execution",
-        route_after_execution,
+        "query_execution", route_after_execution,
         {"analyze": "result_analysis", "retry": "query_rewrite", "give_up": "response_builder", "end": "response_builder"},
     )
     graph.add_edge("result_analysis", "response_builder")
     graph.add_edge("response_builder", END)
 
-    return graph.compile()
+    return graph.compile(checkpointer=get_checkpointer())
 
 
 _compiled_graph = None
