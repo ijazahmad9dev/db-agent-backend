@@ -3,8 +3,28 @@ from datetime import datetime
 from pydantic import BaseModel
 
 
+class ChatSessionOut(BaseModel):
+    id: str
+    connection_id: str
+    title: str | None
+    created_at: datetime
+    updated_at: datetime
+
+    class Config:
+        from_attributes = True
+
+
+class ChatSessionCreate(BaseModel):
+    connection_id: str
+
+
+class ChatSessionRename(BaseModel):
+    title: str
+
+
 class ChatRequest(BaseModel):
     connection_id: str
+    session_id: str | None = None  # omit to auto-create a new session
     question: str
 
 
@@ -20,8 +40,8 @@ class Visualization(BaseModel):
     value: str | None = None
     label: str | None = None
 
-
 class ChatResponse(BaseModel):
+    session_id: str
     answer: str | None
     query: str | None
     columns: list[str] | None = None

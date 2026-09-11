@@ -3,10 +3,16 @@ from db_agent.db.models import Connection, TableSelection
 from db_agent.adapters.factory import get_adapter
 from db_agent.adapters.config_resolver import resolve_adapter_config, GoogleSheetsNotConnectedError
 
+_SQL_DIALECT_MAP = {
+    "postgres": "postgres",
+    "mysql": "mysql",
+    "csv": "duckdb",
+    "gsheets": "duckdb",
+}
+
 
 class ConnectionContextError(Exception):
-    """Raised when the agent can't establish adapter access for a connection — the caller
-    (schema_retrieval node) turns this into a clean agent-level error, not a crash."""
+    pass
 
 
 def load_connection_context(connection_id: str):
@@ -15,7 +21,7 @@ def load_connection_context(connection_id: str):
         if connection is None:
             raise ConnectionContextError(f"Connection not found: {connection_id}")
 
-        owner = connection.owner  # SQLAlchemy relationship — loads the User row
+        owner = connection.owner
         try:
             config = resolve_adapter_config(connection, owner)
         except GoogleSheetsNotConnectedError as e:
@@ -28,4 +34,5 @@ def load_connection_context(connection_id: str):
         top_k = connection.semantic_top_k
 
         adapter = get_adapter(connection.source_type, config)
-        return adapter, allowed_tables, top_k, connection.source_type
+        dialect = _SQL_DIALECT_MAP.get(connection.source_type, connection.source_type)
+        return adapter, allowed_tables, top_k, dialect
