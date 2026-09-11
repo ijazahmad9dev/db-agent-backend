@@ -10,6 +10,7 @@ def query_validation(state: AgentState) -> dict:
         query=state["generated_query"],
         schema=state["schema"],
         allowed_tables=state["allowed_tables"],
+        dialect=state.get("dialect", "postgres"),
     )
     if result.is_valid:
         return {"validation_error": None}

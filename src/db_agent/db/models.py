@@ -41,7 +41,7 @@ class Connection(Base):
 
     owner = relationship("User", back_populates="connections")
     table_selections = relationship("TableSelection", back_populates="connection", cascade="all, delete-orphan")
-    chat_messages = relationship("ChatMessage", back_populates="connection", cascade="all, delete-orphan")
+    chat_sessions = relationship("ChatSession", back_populates="connection", cascade="all, delete-orphan")
 
 
 class TableSelection(Base):
@@ -57,14 +57,29 @@ class TableSelection(Base):
     connection = relationship("Connection", back_populates="table_selections")
 
 
+class ChatSession(Base):
+    __tablename__ = "chat_sessions"
+
+    id = Column(String, primary_key=True, default=_uuid)
+    connection_id = Column(String, ForeignKey("connections.id"), nullable=False, index=True)
+    title = Column(String, nullable=True)  # auto-set from the first question; renamable later
+    created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
+    updated_at = Column(DateTime, default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc))
+
+    connection = relationship("Connection", back_populates="chat_sessions")
+    messages = relationship(
+        "ChatMessage", back_populates="session", cascade="all, delete-orphan", order_by="ChatMessage.created_at"
+    )
+
+
 class ChatMessage(Base):
     __tablename__ = "chat_messages"
 
     id = Column(String, primary_key=True, default=_uuid)
-    connection_id = Column(String, ForeignKey("connections.id"), nullable=False, index=True)
-    role = Column(String, nullable=False)  # "user" | "assistant"
-    question = Column(String, nullable=True)  # set on role="user" only
-    response_json = Column(JSON, nullable=True)  # set on role="assistant" only — mirrors ChatResponse shape
+    session_id = Column(String, ForeignKey("chat_sessions.id"), nullable=False, index=True)
+    role = Column(String, nullable=False)
+    question = Column(String, nullable=True)
+    response_json = Column(JSON, nullable=True)
     created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc), index=True)
 
-    connection = relationship("Connection", back_populates="chat_messages")
+    session = relationship("ChatSession", back_populates="messages")
