@@ -16,12 +16,14 @@ def schema_retrieval(state: AgentState) -> dict:
             "allowed_tables": [], "dialect": dialect,
         }
 
+    question = state.get("normalized_question") or state["question"]
+
     schema_snippets = search_relevant_schema(
-        connection_id=state["connection_id"], question=state["question"],
+        connection_id=state["connection_id"], question=question,
         allowed_tables=allowed_tables, top_k=top_k,
     )
     semantic_snippets = search_relevant_tables(
-        connection_id=state["connection_id"], question=state["question"],
+        connection_id=state["connection_id"], question=question,
         allowed_tables=allowed_tables, top_k=min(top_k, len(allowed_tables)),
     )
 

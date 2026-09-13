@@ -31,9 +31,10 @@ def relevance_check(state: AgentState) -> dict:
     semantic_context = "\n\n".join(s["text"] for s in state.get("semantic_snippets", [])) or "(none)"
     schema_context = "\n\n".join(s["ddl_text"] for s in state.get("schema_snippets", [])) or "(none)"
 
+    question = state.get("normalized_question") or state["question"]
     llm = ChatOllama(base_url=settings.ollama_base_url, model=settings.ollama_model, temperature=0)
     prompt = _RELEVANCE_PROMPT.format(
-        semantic_context=semantic_context, schema_context=schema_context, question=state["question"]
+        semantic_context=semantic_context, schema_context=schema_context, question=question
     )
     raw = llm.invoke(prompt, config={"run_name": "relevance_check", "tags": ["agent-node"]}).content.strip()
 

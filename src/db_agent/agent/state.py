@@ -6,6 +6,9 @@ from db_agent.adapters.base import TableInfo
 class AgentState(TypedDict, total=False):
     connection_id: str
     question: str
+    normalized_question: str
+    question_assumptions: list[str]
+    needs_clarification: bool
     dialect: str
     allowed_tables: list[str]
     semantic_snippets: list[dict]
@@ -14,9 +17,10 @@ class AgentState(TypedDict, total=False):
     generated_query: str
     validation_error: str | None
     execution_error: str | None
+    verification_error: str | None
     result: dict | None
     retry_count: int
     max_retries: int
     answer: str | None
-    visualizations: list[dict]  # was: visualization: dict | None
+    visualizations: list[dict]
     error: str | None

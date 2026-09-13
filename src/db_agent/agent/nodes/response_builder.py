@@ -21,8 +21,12 @@ def response_builder(state: AgentState) -> dict:
             "error": final_error,
         }
 
+    answer = state.get("answer")
+    if state.get("verification_error") and answer:
+        answer = f"{answer}\n\n(Note: I couldn't fully confirm this answer is precise — {state['verification_error']})"
+
     return {
-        "answer": state.get("answer"),
+        "answer": answer,
         "generated_query": state.get("generated_query"),
         "result": state.get("result"),
         "visualizations": state.get("visualizations", []),

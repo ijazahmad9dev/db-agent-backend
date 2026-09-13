@@ -20,11 +20,12 @@ def result_analysis(state: AgentState) -> dict:
         return {}
 
     result = state["result"]
+    question = state.get("normalized_question") or state["question"]
     llm = ChatOllama(base_url=settings.ollama_base_url, model=settings.ollama_model)
     prompt = _ANALYSIS_PROMPT.format(
-        question=state["question"], columns=result["columns"], rows=result["rows"][:20]
+        question=question, columns=result["columns"], rows=result["rows"][:20]
     )
     answer = llm.invoke(prompt, config={"run_name": "result_analysis", "tags": ["agent-node"]}).content.strip()
 
-    visualizations = suggest_visualizations(result["columns"], result["rows"], state["question"])
+    visualizations = suggest_visualizations(result["columns"], result["rows"], question)
     return {"answer": answer, "visualizations": visualizations}

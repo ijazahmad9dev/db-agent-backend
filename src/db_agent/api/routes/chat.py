@@ -164,7 +164,12 @@ def chat(
         error=result.get("error"),
     )
 
-    stored_response = response.model_dump()
+    # mode="json" (not the default "python") converts datetime/date/Decimal/UUID
+    # etc. into JSON-safe primitives (e.g. ISO strings) before this gets stored in
+    # a JSON column — the same conversion FastAPI already does automatically for
+    # the live HTTP response via response_model, which is why this bug only shows
+    # up here and not in the response the frontend actually receives.
+    stored_response = response.model_dump(mode="json")
     if stored_response.get("rows"):
         stored_response["rows"] = stored_response["rows"][:50]
 
