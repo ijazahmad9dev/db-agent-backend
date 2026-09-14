@@ -18,6 +18,12 @@ regardless of what the underlying data source actually is.
 Available tables and columns:
 {schema_context}
 
+Known relationships between these tables (use these for JOINs when relevant — they are
+confirmed, either from the real database schema or from a person who reviewed and edited
+them; if a needed relationship isn't listed here, you may still join on clearly matching
+columns, e.g. a *_id column matching another table's id):
+{relationship_context}
+
 Business/semantic context (use these descriptions to map business terms to actual columns):
 {semantic_context}
 
@@ -36,6 +42,7 @@ def generate_query(
     dialect: str,
     schema: list[TableInfo],
     semantic_snippets: list[dict],
+    known_relationships: list[dict] | None = None,
     previous_error: str | None = None,
 ) -> str:
     llm = ChatOllama(base_url=settings.ollama_base_url, model=settings.ollama_model, temperature=0)
@@ -44,9 +51,14 @@ def generate_query(
         f"- {t.name}({', '.join(c.name + ' ' + c.data_type for c in t.columns)})" for t in schema
     )
     semantic_context = "\n\n".join(s["text"] for s in semantic_snippets) or "(no semantic context available)"
+    relationship_context = "\n".join(
+        f"- {r['from_table']}.{r['from_column']} → {r['to_table']}.{r['to_column']} ({r['cardinality']})"
+        for r in (known_relationships or [])
+    ) or "(none known — infer joins from matching column names if needed)"
 
     prompt = _GENERATION_PROMPT.format(
-        schema_context=schema_context, semantic_context=semantic_context, question=question
+        schema_context=schema_context, relationship_context=relationship_context,
+        semantic_context=semantic_context, question=question
     )
     if previous_error:
         prompt += f"\n\nYour previous attempt failed validation with this error — fix it:\n{previous_error}"
@@ -67,9 +79,6 @@ def _to_target_dialect(sql: str, target_dialect: str) -> str:
     try:
         return sqlglot.transpile(sql, read=_REFERENCE_DIALECT, write=target_dialect)[0]
     except Exception:
-        # Transpile failed — fall back to the untranslated SQL rather than crashing
-        # generation. validate_syntax() in the validator catches it if it's
-        # genuinely invalid for the target, feeding a clear error into the retry loop.
         return sql
 
 
