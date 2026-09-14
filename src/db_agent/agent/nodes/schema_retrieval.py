@@ -1,7 +1,9 @@
 from db_agent.agent.state import AgentState
 from db_agent.agent.context import load_connection_context, ConnectionContextError
 from db_agent.introspection.ddl_vectorstore import search_relevant_schema
+from db_agent.introspection.erd_builder import build_erd, merge_semantic_relationships
 from db_agent.semantic.vectorstore import search_relevant_tables
+from db_agent.semantic.loader import load_semantic_layer
 
 
 def schema_retrieval(state: AgentState) -> dict:
@@ -35,7 +37,17 @@ def schema_retrieval(state: AgentState) -> dict:
 
     schema = adapter.get_schema(union_tables)
 
+    erd = build_erd(schema)
+    layer = load_semantic_layer(state["connection_id"])
+    erd = merge_semantic_relationships(erd, layer)
+    tables_in_scope = {t.name for t in schema}
+    known_relationships = [
+        e for e in erd["edges"]
+        if e["from_table"] in tables_in_scope and e["to_table"] in tables_in_scope
+    ]
+
     return {
         "allowed_tables": allowed_tables, "dialect": dialect,
         "schema_snippets": schema_snippets, "semantic_snippets": semantic_snippets, "schema": schema,
+        "known_relationships": known_relationships,
     }

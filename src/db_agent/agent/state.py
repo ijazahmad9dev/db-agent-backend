@@ -24,3 +24,4 @@ class AgentState(TypedDict, total=False):
     answer: str | None
     visualizations: list[dict]
     error: str | None
+    known_relationships: list[dict]

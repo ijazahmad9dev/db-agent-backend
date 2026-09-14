@@ -14,6 +14,7 @@ def query_generation(state: AgentState) -> dict:
         dialect=state["dialect"],
         schema=state["schema"],
         semantic_snippets=state.get("semantic_snippets", []),
+        known_relationships=state.get("known_relationships", []),
         previous_error=previous_error,
     )
     return {
