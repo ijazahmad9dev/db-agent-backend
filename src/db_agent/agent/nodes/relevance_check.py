@@ -1,4 +1,5 @@
 from langchain_ollama import ChatOllama
+from db_agent.core.llm import get_chat_llm
 
 from db_agent.core.config import get_settings
 from db_agent.agent.state import AgentState
@@ -32,7 +33,7 @@ def relevance_check(state: AgentState) -> dict:
     schema_context = "\n\n".join(s["ddl_text"] for s in state.get("schema_snippets", [])) or "(none)"
 
     question = state.get("normalized_question") or state["question"]
-    llm = ChatOllama(base_url=settings.ollama_base_url, model=settings.ollama_model, temperature=0)
+    llm = get_chat_llm()
     prompt = _RELEVANCE_PROMPT.format(
         semantic_context=semantic_context, schema_context=schema_context, question=question
     )

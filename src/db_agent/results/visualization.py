@@ -1,6 +1,7 @@
 import json
 
 from langchain_ollama import ChatOllama
+from db_agent.core.llm import get_chat_llm
 
 from db_agent.core.config import get_settings
 
@@ -60,7 +61,7 @@ def _llm_suggest(columns: list[str], rows: list[dict], question: str) -> list[di
     if not rows:
         return []
 
-    llm = ChatOllama(base_url=settings.ollama_base_url, model=settings.ollama_model, temperature=0)
+    llm = get_chat_llm()
     prompt = _SUGGESTION_PROMPT.format(
         question=question, columns=columns, sample_rows=rows[:10]
     )

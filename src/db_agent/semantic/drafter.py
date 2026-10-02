@@ -1,6 +1,6 @@
 import yaml
 from langchain_ollama import ChatOllama
-
+from db_agent.core.llm import get_chat_llm
 from db_agent.core.config import get_settings
 from db_agent.adapters.base import DataSourceAdapter, TableInfo
 from db_agent.semantic.models import TableSemantic, ColumnSemantic
@@ -30,7 +30,7 @@ def draft_table_semantic(adapter: DataSourceAdapter, table: TableInfo) -> TableS
 
 
 def _llm_draft(adapter: DataSourceAdapter, table: TableInfo) -> TableSemantic:
-    llm = ChatOllama(base_url=settings.ollama_base_url, model=settings.ollama_model)
+    llm = get_chat_llm(temperature=None)
     sample = adapter.sample_rows(table.name, limit=3)
     prompt = _DRAFT_PROMPT.format(
         table_name=table.name,
