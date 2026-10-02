@@ -1,5 +1,5 @@
 from langchain_ollama import ChatOllama
-
+from db_agent.core.llm import get_chat_llm
 from db_agent.core.config import get_settings
 from db_agent.agent.state import AgentState
 
@@ -59,7 +59,7 @@ def _analyze(question: str) -> dict:
     falls back to treating the question at face value so a single bad LLM
     response can't block the whole pipeline."""
     try:
-        llm = ChatOllama(base_url=settings.ollama_base_url, model=settings.ollama_model, temperature=0)
+        llm = get_chat_llm()
         raw = llm.invoke(
             _ANALYSIS_PROMPT.format(question=question),
             config={"run_name": "question_analysis", "tags": ["agent-node"]},

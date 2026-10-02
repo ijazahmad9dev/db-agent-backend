@@ -1,5 +1,5 @@
 from langchain_ollama import ChatOllama
-
+from db_agent.core.llm import get_chat_llm
 from db_agent.core.config import get_settings
 from db_agent.agent.state import AgentState
 
@@ -39,7 +39,7 @@ def answer_verification(state: AgentState) -> dict:
 
     question = state.get("normalized_question") or state["question"]
     try:
-        llm = ChatOllama(base_url=settings.ollama_base_url, model=settings.ollama_model, temperature=0)
+        llm = get_chat_llm()
         prompt = _VERIFICATION_PROMPT.format(
             question=question,
             query=state["generated_query"],

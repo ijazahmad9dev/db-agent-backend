@@ -2,22 +2,23 @@ import uuid
 
 from qdrant_client import QdrantClient
 from qdrant_client.http import models as qmodels
-from langchain_ollama import OllamaEmbeddings
+from langchain_core.embeddings import Embeddings
 
 from db_agent.core.config import get_settings
+from db_agent.core.llm import get_embeddings as _get_embeddings
 from db_agent.semantic.models import SemanticLayer, TableSemantic
 
 settings = get_settings()
 COLLECTION_NAME = "semantic_tables"
 
 _client: QdrantClient | None = None
-_embeddings: OllamaEmbeddings | None = None
+_embeddings: Embeddings | None = None
 
 
-def get_embeddings() -> OllamaEmbeddings:
+def get_embeddings() -> Embeddings:
     global _embeddings
     if _embeddings is None:
-        _embeddings = OllamaEmbeddings(base_url=settings.ollama_base_url, model=settings.embedding_model)
+        _embeddings = _get_embeddings()
     return _embeddings
 
 
@@ -25,7 +26,7 @@ def get_client() -> QdrantClient:
     global _client
     if _client is None:
         _client = QdrantClient(url=settings.qdrant_url)
-    return _client 
+    return _client
 
 
 def _ensure_collection(client: QdrantClient) -> None:

@@ -1,5 +1,6 @@
 import sqlglot
 from langchain_ollama import ChatOllama
+from db_agent.core.llm import get_chat_llm
 
 from db_agent.core.config import get_settings
 from db_agent.adapters.base import TableInfo
@@ -45,7 +46,7 @@ def generate_query(
     known_relationships: list[dict] | None = None,
     previous_error: str | None = None,
 ) -> str:
-    llm = ChatOllama(base_url=settings.ollama_base_url, model=settings.ollama_model, temperature=0)
+    llm = get_chat_llm()
 
     schema_context = "\n".join(
         f"- {t.name}({', '.join(c.name + ' ' + c.data_type for c in t.columns)})" for t in schema

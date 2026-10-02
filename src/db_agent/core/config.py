@@ -79,6 +79,12 @@ class Settings(BaseSettings):
     ollama_model: str = "gpt-oss:latest"
     agent_max_retries: int = 3
 
+    # fallback LLMs and embedding models
+    groq_api_key: str = ""
+    groq_model: str = "openai/gpt-oss-20b"
+    cohere_api_key: str = ""
+    cohere_embed_model: str = "embed-english-v3.0"
+
     # Metadata DB
     metadata_db_url: str = "sqlite:///./db_agent_metadata.db"
 

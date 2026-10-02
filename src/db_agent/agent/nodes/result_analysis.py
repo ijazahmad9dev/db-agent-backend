@@ -1,5 +1,5 @@
 from langchain_ollama import ChatOllama
-
+from db_agent.core.llm import get_chat_llm
 from db_agent.core.config import get_settings
 from db_agent.agent.state import AgentState
 from db_agent.results.visualization import suggest_visualizations
@@ -21,7 +21,7 @@ def result_analysis(state: AgentState) -> dict:
 
     result = state["result"]
     question = state.get("normalized_question") or state["question"]
-    llm = ChatOllama(base_url=settings.ollama_base_url, model=settings.ollama_model)
+    llm = get_chat_llm(temperature=None)
     prompt = _ANALYSIS_PROMPT.format(
         question=question, columns=result["columns"], rows=result["rows"][:20]
     )
